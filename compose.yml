@@ -1,0 +1,42 @@
+services:
+  master:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    command: python3 master_node.py
+    networks:
+      - graph_network
+    environment:
+      - DEBUG=1
+
+  worker1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - master
+    command: mpiexec -n 4 python3 worker_node.py 1
+    environment:
+      - HYDRA_LAUNCHER=fork
+      - DEBUG=1
+    networks:
+      - graph_network
+
+  worker2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - master
+    command: mpiexec -n 4 python3 worker_node.py 2
+    environment:
+      - HYDRA_LAUNCHER=fork
+      - DEBUG=1
+    networks:
+      - graph_network
+
+networks:
+  graph_network:
+    driver: bridge
